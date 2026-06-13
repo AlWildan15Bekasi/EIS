@@ -247,6 +247,17 @@
                     Step 1: Identitas Ujian
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6" id="identityFormContainer">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold mb-2 text-slate-700">Jenis Ujian</label>
+                        <select id="examType" class="glass-input w-full p-3.5 rounded-xl font-medium cursor-pointer">
+                            <option value="" disabled selected>Pilih Jenis Ujian...</option>
+                            <option value="SNBT">SNBT</option>
+                            <option value="TKA">TKA</option>
+                            <option value="SAJ">SAJ</option>
+                            <option value="SAT">SAT</option>
+                            <option value="STS">STS</option>
+                        </select>
+                    </div>
                     <div>
                         <label class="block text-sm font-bold mb-2 text-slate-700">Judul Ujian</label>
                         <input type="text" id="examTitle" class="glass-input w-full p-3.5 rounded-xl font-medium" placeholder="Contoh: Penilaian Harian 1">
@@ -360,8 +371,8 @@
                             </div>
                         </div>
 
-                        <!-- Soal / Pernyataan Utama -->
-                         <div class="border-2 border-cyan-400/50 p-6 rounded-2xl bg-cyan-100/50 shadow-md relative">
+                        <!-- Soal / Pernyataan Utama --> 
+                        <div class="border-2 border-cyan-400/50 p-6 rounded-2xl bg-cyan-100/50 shadow-md relative">
                             <div class="absolute -left-1 top-6 w-2 h-12 bg-cyan-500 rounded-r-lg shadow-[0_0_12px_rgba(0,200,255,0.8)]"></div>
                             <div class="flex justify-between items-center mb-4 pl-4">
                                 <label class="text-lg font-black text-blue-900">Pertanyaan Utama <span class="text-red-500">*</span></label>
@@ -405,7 +416,7 @@
                     </div>
 
                     <!-- 2.5 AREA KUNCI JAWABAN -->
-                    <div class="mb-8 mt-12">
+                    <div class="mb-8 mt-12"> 
                          <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center">
                              <div class="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center mr-3 shadow-sm border border-green-300">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
@@ -420,8 +431,8 @@
                     <!-- TOMBOL SUBMIT AKHIR -->
                     <div class="mt-10 pt-8 border-t border-cyan-200/50 flex flex-col items-end">
                          <button id="btnSubmitFinalQuestion" disabled class="btn-cyber-disabled font-black py-4 px-10 rounded-2xl text-lg flex items-center justify-center transition-all duration-300">
-                             <span>Simpan & Lanjut Soal Berikutnya</span>
-                              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                             <span>Simpan & Lanjut Soal Berikutnya</span> 
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </button>
                         <p class="text-sm text-sky-700 mt-3 font-semibold bg-white/50 px-4 py-1.5 rounded-lg border border-cyan-200/50">*Tombol otomatis aktif jika Topik, Soal, & Kunci sudah terisi.</p>
                     </div>
@@ -631,7 +642,7 @@
             // --- 2. IDENTITAS & CREATE BUTTON (SIMPAN KE GOOGLE SHEETS) ---
             const btnSubmitIdentity = document.getElementById('btnSubmitIdentity');
             const btnCreateQuestions = document.getElementById('btnCreateQuestions');
-            const identityInputs = document.querySelectorAll('#identityFormContainer input');
+            const identityInputs = document.querySelectorAll('#identityFormContainer input, #identityFormContainer select');
             const identityStatusMsg = document.getElementById('identityStatusMsg');
             const questionEditorArea = document.getElementById('questionEditorArea');
 
@@ -650,6 +661,7 @@
 
                     const payload = {
                         action: 'save_identity',
+                        jenisUjian: document.getElementById('examType').value,
                         judulUjian: document.getElementById('examTitle').value,
                         mataPelajaran: document.getElementById('examSubject').value,
                         durasi: document.getElementById('examDuration').value,
@@ -795,13 +807,13 @@
                         renderKategoriTableInput();
                         renderKategoriAnswerKeyInput();
                         break;
-                    case 'isian':
-                         dynamicOptionsContainer.innerHTML = `<div class="p-6 bg-white/60 rounded-2xl text-center text-sky-700 font-bold border-2 border-dashed border-cyan-300 shadow-sm">Soal Isian Singkat (Siswa akan diberikan kotak teks saat ujian).</div>`;
-                         renderIsianSingkatKeyInput();
+                    case 'isian': 
+                        dynamicOptionsContainer.innerHTML = `<div class="p-6 bg-white/60 rounded-2xl text-center text-sky-700 font-bold border-2 border-dashed border-cyan-300 shadow-sm">Soal Isian Singkat (Siswa akan diberikan kotak teks saat ujian).</div>`;
+                        renderIsianSingkatKeyInput();
                         break;
-                    case 'essay':
-                         dynamicOptionsContainer.innerHTML = `<div class="p-6 bg-white/60 rounded-2xl text-center text-sky-700 font-bold border-2 border-dashed border-cyan-300 shadow-sm">Soal Essay (Siswa disediakan kotak teks besar & fitur upload gambar).</div>`;
-                         renderEssayKeyInput();
+                    case 'essay': 
+                        dynamicOptionsContainer.innerHTML = `<div class="p-6 bg-white/60 rounded-2xl text-center text-sky-700 font-bold border-2 border-dashed border-cyan-300 shadow-sm">Soal Essay (Siswa disediakan kotak teks besar & fitur upload gambar).</div>`;
+                        renderEssayKeyInput();
                         break;
                 }
                 validateForm(); 
@@ -972,13 +984,13 @@
                 // Cek Kunci Jawaban
                 const keys = document.querySelectorAll('.key-input-element');
                 let keyFilled = false;
-                if(keys.length > 0) {
-                     keys.forEach(k => {
-                         if((k.type === 'radio' || k.type === 'checkbox') && k.checked) keyFilled = true;
-                         if((k.type === 'text' || k.tagName === 'TEXTAREA') && k.value.trim() !== '') keyFilled = true;
-                     });
-                } else {
-                     keyFilled = true; 
+                if(keys.length > 0) { 
+                    keys.forEach(k => { 
+                        if((k.type === 'radio' || k.type === 'checkbox') && k.checked) keyFilled = true; 
+                        if((k.type === 'text' || k.tagName === 'TEXTAREA') && k.value.trim() !== '') keyFilled = true; 
+                    });
+                } else { 
+                    keyFilled = true; 
                 }
 
                 if(topic !== '' && qContent !== '' && keyFilled) {
@@ -1137,10 +1149,10 @@
                                 tabBtnInputer.click();
 
                                 identityInputs.forEach(input => { 
-                                    input.value = '';
+                                     input.value = '';
                                     input.disabled = false; 
-                                    input.classList.remove('opacity-70', 'cursor-not-allowed'); 
-                                });
+                                     input.classList.remove('opacity-70', 'cursor-not-allowed'); 
+                                 });
 
                                 btnSubmitIdentity.style.display = 'block';
                                 btnSubmitIdentity.innerText = 'Submit Identitas';
