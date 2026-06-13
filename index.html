@@ -39,6 +39,52 @@
         .animation-delay-2000 { animation-delay: 2s; }
         .animation-delay-4000 { animation-delay: 4s; }
 
+        /* --- FITUR ESTETIK BARU: FLOATING SYMBOLS, NEON FLICKER & SCANNER --- */
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+        .floating-symbol {
+            position: fixed;
+            color: rgba(10, 184, 212, 0.3);
+            font-family: monospace;
+            font-weight: bold;
+            user-select: none;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatUp linear infinite;
+            text-shadow: 0 0 10px rgba(10, 184, 212, 0.5);
+        }
+
+        @keyframes scan {
+            0% { top: -5%; opacity: 0; }
+            10% { opacity: 1; }
+            80% { top: 105%; opacity: 1; }
+            90% { opacity: 0; }
+            100% { top: 105%; opacity: 0; }
+        }
+        .cyber-scanner {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.8), transparent);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.8), 0 0 5px rgba(255, 255, 255, 0.5);
+            animation: scan 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; text-shadow: 0 0 15px rgba(10, 184, 212, 0.6), 0 0 30px rgba(10, 184, 212, 0.4); }
+            20%, 24%, 55% { opacity: 0.6; text-shadow: none; }
+        }
+        .neon-flicker {
+            animation: flicker 6s infinite;
+        }
+
         /* REALISTIC CIRCUIT BACKGROUND (SVG PATTERN) */
         .bg-circuit {
             background-color: #060b14; 
@@ -169,6 +215,15 @@
 </head>
 <body class="font-sans text-gray-800 antialiased bg-circuit">
 
+    <!-- FITUR ESTETIK: FLOATING CYBER SYMBOLS -->
+    <div class="floating-symbol" style="left: 10%; font-size: 2rem; animation-duration: 18s; animation-delay: 0s;">{ }</div>
+    <div class="floating-symbol" style="left: 85%; font-size: 3rem; animation-duration: 25s; animation-delay: 5s;">&lt;/&gt;</div>
+    <div class="floating-symbol" style="left: 45%; font-size: 2.5rem; animation-duration: 22s; animation-delay: 2s;">+</div>
+    <div class="floating-symbol" style="left: 20%; font-size: 1.5rem; animation-duration: 15s; animation-delay: 8s;">[ ]</div>
+    <div class="floating-symbol" style="left: 75%; font-size: 2.2rem; animation-duration: 28s; animation-delay: 4s;">//</div>
+    <div class="floating-symbol" style="left: 60%; font-size: 1.8rem; animation-duration: 20s; animation-delay: 10s;">*</div>
+    <div class="floating-symbol" style="left: 35%; font-size: 2.8rem; animation-duration: 26s; animation-delay: 12s;">#</div>
+
     <!-- Toast Notification Container -->
     <div id="toast" class="fixed top-5 right-5 z-[9999] hidden px-6 py-4 rounded-xl shadow-2xl text-white font-bold max-w-md transition-all duration-300 transform translate-y-[-20px] opacity-0 border border-white/20 backdrop-blur-md"></div>
 
@@ -179,16 +234,20 @@
 
     <!-- ================= LOGIN SCREEN ================= -->
     <div id="loginContainer" class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        <div class="glass-panel p-8 sm:p-10 rounded-[2rem] w-full max-w-md relative z-10 transition-transform duration-500 hover:scale-[1.01]">
-            <div class="text-center mb-8">
+        <div class="glass-panel p-8 sm:p-10 rounded-[2rem] w-full max-w-md relative z-10 transition-transform duration-500 hover:scale-[1.01] overflow-hidden">
+            <!-- FITUR ESTETIK: CYBER SCANNER -->
+            <div class="cyber-scanner"></div>
+
+            <div class="text-center mb-8 relative z-10">
                 <div class="relative w-28 h-28 mx-auto rounded-full border-[3px] border-white bg-white overflow-hidden flex items-center justify-center shadow-lg mb-5">
                     <img src="https://thumbs2.imgbox.com/dc/77/MB6lXPkz_t.png" alt="Logo AW15" class="absolute inset-0 w-full h-full object-contain bg-white z-10" onerror="this.style.display='none'">
                 </div>
-                <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Login Guru</h2>
+                <!-- FITUR ESTETIK: NEON FLICKER -->
+                <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight neon-flicker">Login Guru</h2>
                 <p class="text-sm text-sky-700 mt-2 font-bold uppercase tracking-widest">Exam Input System</p>
             </div>
 
-            <form id="loginForm" class="space-y-5">
+            <form id="loginForm" class="space-y-5 relative z-10">
                 <div>
                     <label class="block text-sm font-bold mb-1.5 text-slate-700" for="username">Username / NIP</label>
                     <input type="text" id="username" class="glass-input w-full p-3.5 rounded-xl font-medium" placeholder="Masukkan username" required>
@@ -205,7 +264,7 @@
     </div>
 
     <!-- ================= APP CONTAINER ================= -->
-    <div id="appContainer" class="hidden">
+    <div id="appContainer" class="hidden relative z-10">
 
     <!-- HEADER -->
     <header class="glass-header text-white shadow-2xl sticky top-0 z-50">
@@ -214,7 +273,8 @@
                 <div class="relative w-11 h-11 rounded-full border-2 border-cyan-400 bg-white overflow-hidden flex items-center justify-center shadow-md">
                     <img src="https://thumbs2.imgbox.com/dc/77/MB6lXPkz_t.png" alt="Logo AW15" class="absolute inset-0 w-full h-full object-contain bg-white z-10" onerror="this.style.display='none'">
                 </div>
-                <h1 class="text-xl font-bold tracking-tight text-white drop-shadow-md">Exam Input System</h1>
+                <!-- FITUR ESTETIK: NEON FLICKER -->
+                <h1 class="text-xl font-bold tracking-tight text-white drop-shadow-md neon-flicker">Exam Input System</h1>
             </div>
             <div class="flex items-center">
                 <span id="userGreeting" class="text-sm font-medium mr-4 hidden sm:block text-cyan-100">Selamat datang, Guru!</span>
@@ -239,14 +299,15 @@
         <div id="tabInputer" class="tab-content active">
 
             <!-- STEP 1: IDENTITAS UJIAN -->
-            <div class="glass-panel rounded-[1.5rem] p-6 md:p-8 mb-8 relative">
-                <h2 class="text-xl font-extrabold text-slate-800 mb-6 flex items-center">
+            <div class="glass-panel rounded-[1.5rem] p-6 md:p-8 mb-8 relative overflow-hidden">
+                <div class="cyber-scanner"></div>
+                <h2 class="text-xl font-extrabold text-slate-800 mb-6 flex items-center relative z-10">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white flex items-center justify-center mr-3 shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     </div>
                     Step 1: Identitas Ujian
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6" id="identityFormContainer">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6 relative z-10" id="identityFormContainer">
                     <div class="md:col-span-2">
                         <label class="block text-sm font-bold mb-2 text-slate-700">Jenis Ujian</label>
                         <select id="examType" class="glass-input w-full p-3.5 rounded-xl font-medium cursor-pointer">
@@ -275,7 +336,7 @@
                         <input type="number" id="examTotalQuestions" class="glass-input w-full p-3.5 rounded-xl font-medium" placeholder="Contoh: 20">
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-4 border-t border-cyan-200/50 pt-6">
+                <div class="flex flex-wrap items-center gap-4 border-t border-cyan-200/50 pt-6 relative z-10">
                     <button id="btnSubmitIdentity" class="btn-cyber font-bold py-3 px-8 rounded-xl">
                         Submit Identitas
                     </button>
@@ -292,14 +353,15 @@
             <div id="questionEditorArea" class="hidden opacity-0 transition-opacity duration-700">
                 <div class="glass-panel rounded-[1.5rem] p-6 md:p-8 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500"></div>
+                    <div class="cyber-scanner" style="animation-duration: 6s; opacity: 0.4;"></div>
                     
-                    <h2 class="text-2xl font-black text-slate-800 mb-8 flex items-center">
+                    <h2 class="text-2xl font-black text-slate-800 mb-8 flex items-center relative z-10">
                         <span class="bg-gradient-to-br from-cyan-500 to-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center mr-4 text-xl shadow-lg border border-cyan-300" id="questionNumberLabel">1</span>
                         Editor Soal
                     </h2>
 
                     <!-- 2.1 Metadata Soal -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 inner-panel p-6 rounded-2xl shadow-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 inner-panel p-6 rounded-2xl shadow-sm relative z-10">
                         <div>
                             <label class="block text-xs font-extrabold text-blue-800 uppercase tracking-widest mb-2">Topik</label>
                             <input type="text" id="topicInput" class="glass-input w-full p-3 rounded-xl text-sm" placeholder="Misal: Kinematika">
@@ -311,7 +373,7 @@
                     </div>
 
                     <!-- 2.2 Jenis Soal Dropdown -->
-                    <div class="mb-8">
+                    <div class="mb-8 relative z-10">
                         <label class="block text-sm font-bold mb-2 text-slate-800">Pilih Jenis Soal:</label>
                         <select id="questionTypeSelect" class="glass-input w-full p-4 rounded-xl font-bold text-slate-800 cursor-pointer shadow-sm">
                             <option value="pg_tunggal">Pilihan Ganda Tunggal (Satu Jawaban Benar)</option>
@@ -323,7 +385,7 @@
                     </div>
 
                     <!-- 2.3 Konten Utama Soal -->
-                    <div class="space-y-6 mb-8">
+                    <div class="space-y-6 mb-8 relative z-10">
                         <!-- Stimulus -->
                         <div class="inner-panel p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                             <div class="flex justify-between items-center mb-4">
@@ -403,7 +465,7 @@
                     </div>
 
                     <!-- 2.4 AREA OPSI JAWABAN (DINAMIS) -->
-                    <div class="mb-10">
+                    <div class="mb-10 relative z-10">
                         <h3 class="text-xl font-extrabold text-slate-800 mb-5 pb-3 border-b-2 border-cyan-200/50 flex justify-between items-center">
                             <span>Opsi Jawaban</span>
                             <div id="pgControls" class="flex items-center text-sm space-x-3 hidden">
@@ -416,7 +478,7 @@
                     </div>
 
                     <!-- 2.5 AREA KUNCI JAWABAN -->
-                    <div class="mb-8 mt-12"> 
+                    <div class="mb-8 mt-12 relative z-10"> 
                          <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center">
                              <div class="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center mr-3 shadow-sm border border-green-300">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
@@ -429,7 +491,7 @@
                     </div>
 
                     <!-- TOMBOL SUBMIT AKHIR -->
-                    <div class="mt-10 pt-8 border-t border-cyan-200/50 flex flex-col items-end">
+                    <div class="mt-10 pt-8 border-t border-cyan-200/50 flex flex-col items-end relative z-10">
                          <button id="btnSubmitFinalQuestion" disabled class="btn-cyber-disabled font-black py-4 px-10 rounded-2xl text-lg flex items-center justify-center transition-all duration-300">
                              <span>Simpan & Lanjut Soal Berikutnya</span> 
                              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
