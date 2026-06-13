@@ -231,7 +231,7 @@
                 Exam Inputer
             </button>
             <button id="tabBtnPreviewer" class="tab-btn py-2 px-6 font-semibold text-white/80 hover:text-white focus:outline-none transition-all">
-                Exam Previewer
+                Exam Previewer / Histori
             </button>
         </div>
 
@@ -442,16 +442,20 @@
 
         </div>
 
-        <!-- ================= TAB: EXAM PREVIEWER ================= -->
+        <!-- ================= TAB: EXAM PREVIEWER / HISTORI ================= -->
         <div id="tabPreviewer" class="tab-content glass-panel rounded-[1.5rem] p-8 min-h-[400px]">
             <h2 class="text-2xl font-black text-slate-800 mb-6 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                Preview Soal
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                Dashboard Histori Ujian
             </h2>
-            <div id="previewStatusContainer" class="text-center text-slate-500 py-20 bg-white/40 rounded-2xl border-2 border-dashed border-cyan-300 backdrop-blur-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto text-cyan-300 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                <p class="font-bold text-xl text-slate-600">Belum ada soal yang tersimpan.</p>
-                <p class="text-base mt-2 text-sky-600/80">Selesaikan input soal dan klik Simpan.</p>
+            <div id="previewStatusContainer">
+                <div class="text-center text-slate-500 py-20 bg-white/40 rounded-2xl border-2 border-dashed border-cyan-300 backdrop-blur-sm">
+                    <svg class="animate-spin h-12 w-12 mx-auto text-cyan-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="font-bold text-xl text-slate-600">Memuat Histori...</p>
+                </div>
             </div>
         </div>
 
@@ -471,42 +475,42 @@
         let globalTargetSoal = 0;
         let savedQuestionsCount = 0; 
         let totalExamQuestions = 0;
+        
+        // VARIABEL GLOBAL BARU UNTUK NAMA GURU
+        let globalNamaGuru = '';
 
         document.addEventListener('DOMContentLoaded', function() {
 
-            // --- FUNGSI TOAST (PENGGANTI ALERT) ---
+            // --- FUNGSI TOAST ---
             function showToast(message, isSuccess = false) {
                 const toast = document.getElementById('toast');
                 toast.innerHTML = message.replace(/\n/g, '<br>');
                 
-                // Set warna sesuai tipe pesan
                 if(isSuccess) {
                     toast.classList.add('bg-green-500/90');
-                    toast.classList.remove('bg-red-500/90');
+                    toast.classList.remove('bg-red-500/90', 'bg-cyan-600/90');
+                } else if(message.includes("Memproses") || message.includes("Membuat PDF")) {
+                     toast.classList.add('bg-cyan-600/90');
+                     toast.classList.remove('bg-red-500/90', 'bg-green-500/90');
                 } else {
                     toast.classList.add('bg-red-500/90');
-                    toast.classList.remove('bg-green-500/90');
+                    toast.classList.remove('bg-green-500/90', 'bg-cyan-600/90');
                 }
 
-                // Munculkan toast
                 toast.style.display = 'block';
-                // Trigger animasi masuk
                 setTimeout(() => {
                     toast.classList.remove('translate-y-[-20px]', 'opacity-0');
                     toast.classList.add('translate-y-0', 'opacity-100');
                 }, 10);
 
-                // Sembunyikan otomatis setelah 5 detik
                 setTimeout(() => {
                     toast.classList.remove('translate-y-0', 'opacity-100');
                     toast.classList.add('translate-y-[-20px]', 'opacity-0');
-                    setTimeout(() => {
-                        toast.style.display = 'none';
-                    }, 300); // Tunggu animasi selesai
+                    setTimeout(() => { toast.style.display = 'none'; }, 300); 
                 }, 5000);
             }
 
-            // --- JURUS TAHAN BANTING: AUTO RETRY FETCH ---
+            // --- AUTO RETRY FETCH ---
             async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
                 for (let i = 0; i < retries; i++) {
                     try {
@@ -521,7 +525,7 @@
                 }
             }
 
-            // --- MESIN PENGECIL GAMBAR (CANVAS API COMPRESSOR) ---
+            // --- CANVAS COMPRESSOR ---
             function compressImageToBase64(file, maxWidth = 500, quality = 0.5) {
                 return new Promise((resolve, reject) => {
                     if (!file) return resolve('');
@@ -535,31 +539,18 @@
                             let width = img.width;
                             let height = img.height;
 
-                            // Algoritma menjaga proporsi (Aspect Ratio)
                             if (width > height) {
-                                if (width > maxWidth) {
-                                    height *= maxWidth / width;
-                                    width = maxWidth;
-                                }
+                                if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
                             } else {
-                                if (height > maxWidth) {
-                                    width *= maxWidth / height;
-                                    height = maxWidth;
-                                }
+                                if (height > maxWidth) { width *= maxWidth / height; height = maxWidth; }
                             }
 
-                            canvas.width = width;
-                            canvas.height = height;
+                            canvas.width = width; canvas.height = height;
                             const ctx = canvas.getContext('2d');
-                            
-                            // Tambah background putih agar gambar transparan (PNG) tidak berubah jadi hitam saat jadi JPEG
                             ctx.fillStyle = '#FFFFFF';
                             ctx.fillRect(0, 0, width, height);
                             ctx.drawImage(img, 0, 0, width, height);
-
-                            // Kompresi ke format JPEG
-                            const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                            resolve(dataUrl);
+                            resolve(canvas.toDataURL('image/jpeg', quality));
                         };
                         img.onerror = () => resolve('');
                     };
@@ -567,7 +558,7 @@
                 });
             }
 
-            // --- 0. LOGIN LOGIC DENGAN BACKEND ---
+            // --- 0. LOGIN ---
             const loginForm = document.getElementById('loginForm');
             const loginContainer = document.getElementById('loginContainer');
             const appContainer = document.getElementById('appContainer');
@@ -577,23 +568,20 @@
                 e.preventDefault();
                 const btn = loginForm.querySelector('button[type="submit"]');
                 const originalText = btn.innerText;
-                btn.innerText = 'Memeriksa ke Database...';
-                btn.disabled = true;
+                btn.innerText = 'Memeriksa ke Database...'; btn.disabled = true;
 
                 try {
                     const response = await fetchWithRetry(SCRIPT_URL, {
                         method: 'POST',
-                        body: JSON.stringify({
-                            action: 'login',
-                            username: document.getElementById('username').value,
-                            password: document.getElementById('password').value
-                        })
+                        body: JSON.stringify({ action: 'login', username: document.getElementById('username').value, password: document.getElementById('password').value })
                     });
-                    
                     const result = await response.json();
                     
                     if (result.status === 'success') {
-                        document.getElementById('userGreeting').innerText = 'Selamat datang, ' + result.data.nama + '!';
+                        // SIMPAN NAMA GURU SETELAH BERHASIL LOGIN
+                        globalNamaGuru = result.data.nama;
+                        document.getElementById('userGreeting').innerText = 'Selamat datang, ' + globalNamaGuru + '!';
+                        
                         loginContainer.classList.add('hidden');
                         appContainer.classList.remove('hidden');
                         window.scrollTo(0,0);
@@ -602,15 +590,9 @@
                         showToast('Gagal: ' + result.message);
                     }
                 } catch (error) {
-                    let errMsg = error.message;
-                    if (errMsg.includes('Unexpected token') || errMsg.includes('JSON')) {
-                        showToast('KONEKSI DITOLAK GOOGLE!\n\nPenyebab paling umum: Akses Deployment Apps Script belum diatur ke "Siapa Saja".');
-                    } else {
-                        showToast('Terjadi kesalahan jaringan/server.\nDetail: ' + errMsg);
-                    }
+                    showToast('Terjadi kesalahan jaringan/server.\nDetail: ' + error.message);
                 } finally {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
+                    btn.innerText = originalText; btn.disabled = false;
                 }
             });
 
@@ -618,6 +600,7 @@
                 appContainer.classList.add('hidden');
                 loginContainer.classList.remove('hidden');
                 loginForm.reset();
+                globalNamaGuru = ''; // Bersihkan memori nama guru
             });
 
             // --- 1. TAB SYSTEM ---
@@ -637,9 +620,14 @@
             }
 
             tabBtnInputer.addEventListener('click', () => switchTab(tabBtnInputer, tabBtnPreviewer, tabInputerContent, tabPreviewerContent));
-            tabBtnPreviewer.addEventListener('click', () => switchTab(tabBtnPreviewer, tabBtnInputer, tabPreviewerContent, tabInputerContent));
+            
+            // SAAT TAB PREVIEW DIKLIK -> PANGGIL FUNGSI LOAD HISTORY
+            tabBtnPreviewer.addEventListener('click', () => {
+                switchTab(tabBtnPreviewer, tabBtnInputer, tabPreviewerContent, tabInputerContent);
+                loadExamHistory(); 
+            });
 
-            // --- 2. IDENTITAS & CREATE BUTTON (SIMPAN KE GOOGLE SHEETS) ---
+            // --- 2. IDENTITAS ---
             const btnSubmitIdentity = document.getElementById('btnSubmitIdentity');
             const btnCreateQuestions = document.getElementById('btnCreateQuestions');
             const identityInputs = document.querySelectorAll('#identityFormContainer input, #identityFormContainer select');
@@ -652,8 +640,7 @@
                 if(!allFilled) { showToast('Lengkapi data identitas ujian dulu ya.'); return; }
 
                 const originalText = this.innerText;
-                this.innerText = 'Menyimpan...';
-                this.disabled = true;
+                this.innerText = 'Menyimpan...'; this.disabled = true;
                 identityInputs.forEach(input => { input.disabled = true; input.classList.add('opacity-70', 'cursor-not-allowed'); });
 
                 try {
@@ -661,6 +648,7 @@
 
                     const payload = {
                         action: 'save_identity',
+                        namaGuru: globalNamaGuru, // MENGIRIM NAMA GURU
                         jenisUjian: document.getElementById('examType').value,
                         judulUjian: document.getElementById('examTitle').value,
                         mataPelajaran: document.getElementById('examSubject').value,
@@ -668,11 +656,7 @@
                         totalSoal: document.getElementById('examTotalQuestions').value
                     };
 
-                    const response = await fetchWithRetry(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(payload)
-                    });
-                    
+                    const response = await fetchWithRetry(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                     const result = await response.json();
                     
                     if (result.status === 'success') {
@@ -681,20 +665,17 @@
                         
                         this.style.display = 'none'; 
                         btnCreateQuestions.disabled = false;
-                        btnCreateQuestions.classList.remove('btn-cyber-disabled');
-                        btnCreateQuestions.classList.add('btn-cyber');
+                        btnCreateQuestions.classList.remove('btn-cyber-disabled'); btnCreateQuestions.classList.add('btn-cyber');
                         identityStatusMsg.classList.remove('hidden');
                         validateForm(); 
                     } else {
                         showToast('Gagal: ' + result.message);
-                        this.innerText = originalText;
-                        this.disabled = false;
+                        this.innerText = originalText; this.disabled = false;
                         identityInputs.forEach(input => { input.disabled = false; input.classList.remove('opacity-70', 'cursor-not-allowed'); });
                     }
                 } catch (error) {
                     showToast('Terjadi kesalahan jaringan.\nDetail: ' + error.message);
-                    this.innerText = originalText;
-                    this.disabled = false;
+                    this.innerText = originalText; this.disabled = false;
                     identityInputs.forEach(input => { input.disabled = false; input.classList.remove('opacity-70', 'cursor-not-allowed'); });
                 }
             });
@@ -708,7 +689,7 @@
             });
 
 
-            // --- 3. TOGGLE TEKS/GAMBAR & PREVIEW GAMBAR ---
+            // --- 3. TOGGLE GAMBAR/TEKS & ENGINE FORM SOAL DINAMIS (Tidak ada perubahan) ---
             document.body.addEventListener('click', function(e) {
                 if (e.target && e.target.classList && e.target.classList.contains('input-toggle-btn')) {
                     const targetId = e.target.getAttribute('data-target');
@@ -720,11 +701,8 @@
                         btn.classList.add('text-slate-500', 'hover:text-blue-600', 'bg-transparent');
                     });
                     
-                    if(groupName === 'question') {
-                        e.target.classList.add('active', 'bg-cyan-500', 'text-white', 'shadow-sm');
-                    } else {
-                        e.target.classList.add('active', 'bg-white', 'text-blue-600', 'shadow-sm');
-                    }
+                    if(groupName === 'question') { e.target.classList.add('active', 'bg-cyan-500', 'text-white', 'shadow-sm'); } 
+                    else { e.target.classList.add('active', 'bg-white', 'text-blue-600', 'shadow-sm'); }
                     e.target.classList.remove('text-slate-500', 'hover:text-blue-600', 'bg-transparent');
 
                     const groupInputs = document.querySelectorAll(`.input-group-${groupName}`);
@@ -742,14 +720,10 @@
                     const fileInput = container.querySelector('.file-input');
                     const placeholder = container.querySelector('.upload-placeholder');
                     const previewContainer = container.querySelector('.preview-container');
-                    const previewImage = container.querySelector('.preview-image');
-
-                    fileInput.value = ''; 
-                    previewImage.src = '';
-                    fileInput.classList.remove('hidden');
-                    previewContainer.classList.add('hidden');
-                    placeholder.classList.remove('hidden');
-                    validateForm();
+                    
+                    fileInput.value = ''; container.querySelector('.preview-image').src = '';
+                    fileInput.classList.remove('hidden'); previewContainer.classList.add('hidden');
+                    placeholder.classList.remove('hidden'); validateForm();
                 }
             });
 
@@ -757,27 +731,19 @@
                 if(e.target.classList.contains('file-input')) {
                     const file = e.target.files[0];
                     const container = e.target.closest('.image-upload-container');
-                    if(!container) return;
-                    const placeholder = container.querySelector('.upload-placeholder');
-                    const previewContainer = container.querySelector('.preview-container');
-                    const previewImage = container.querySelector('.preview-image');
-
-                    if(file) {
-                        const reader = new FileReader();
-                        reader.onload = function(evt) {
-                            previewImage.src = evt.target.result;
-                            placeholder.classList.add('hidden');
-                            previewContainer.classList.remove('hidden');
-                            e.target.classList.add('hidden'); 
-                            validateForm();
-                        }
-                        reader.readAsDataURL(file);
+                    if(!container || !file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        container.querySelector('.preview-image').src = evt.target.result;
+                        container.querySelector('.upload-placeholder').classList.add('hidden');
+                        container.querySelector('.preview-container').classList.remove('hidden');
+                        e.target.classList.add('hidden'); validateForm();
                     }
+                    reader.readAsDataURL(file);
                 }
             });
 
-
-            // --- 4. ENGINE FORM SOAL DINAMIS ---
             const questionTypeSelect = document.getElementById('questionTypeSelect');
             const dynamicOptionsContainer = document.getElementById('dynamicOptionsContainer');
             const dynamicAnswerKeyContainer = document.getElementById('dynamicAnswerKeyContainer');
@@ -787,34 +753,15 @@
             questionTypeSelect.addEventListener('change', function(e) { renderQuestionUI(e.target.value); });
 
             function renderQuestionUI(type) {
-                dynamicOptionsContainer.innerHTML = ''; 
-                dynamicAnswerKeyContainer.innerHTML = ''; 
-
-                if(type === 'pg_tunggal' || type === 'pg_majemuk') {
-                    pgControls.classList.remove('hidden');
-                    updateOptionCountLabel();
-                } else {
-                    pgControls.classList.add('hidden');
-                }
+                dynamicOptionsContainer.innerHTML = ''; dynamicAnswerKeyContainer.innerHTML = ''; 
+                if(type === 'pg_tunggal' || type === 'pg_majemuk') { pgControls.classList.remove('hidden'); updateOptionCountLabel(); } 
+                else { pgControls.classList.add('hidden'); }
 
                 switch(type) {
-                    case 'pg_tunggal':
-                    case 'pg_majemuk':
-                        renderPGOptionInputs();
-                        renderPGAnswerKeyInput(type === 'pg_tunggal' ? 'radio' : 'checkbox');
-                        break;
-                    case 'kategori':
-                        renderKategoriTableInput();
-                        renderKategoriAnswerKeyInput();
-                        break;
-                    case 'isian': 
-                        dynamicOptionsContainer.innerHTML = `<div class="p-6 bg-white/60 rounded-2xl text-center text-sky-700 font-bold border-2 border-dashed border-cyan-300 shadow-sm">Soal Isian Singkat (Siswa akan diberikan kotak teks saat ujian).</div>`;
-                        renderIsianSingkatKeyInput();
-                        break;
-                    case 'essay': 
-                        dynamicOptionsContainer.innerHTML = `<div class="p-6 bg-white/60 rounded-2xl text-center text-sky-700 font-bold border-2 border-dashed border-cyan-300 shadow-sm">Soal Essay (Siswa disediakan kotak teks besar & fitur upload gambar).</div>`;
-                        renderEssayKeyInput();
-                        break;
+                    case 'pg_tunggal': case 'pg_majemuk': renderPGOptionInputs(); renderPGAnswerKeyInput(type === 'pg_tunggal' ? 'radio' : 'checkbox'); break;
+                    case 'kategori': renderKategoriTableInput(); renderKategoriAnswerKeyInput(); break;
+                    case 'isian': dynamicOptionsContainer.innerHTML = `<div class="p-6 bg-white/60 rounded-2xl text-center text-sky-700 font-bold border-2 border-dashed border-cyan-300 shadow-sm">Soal Isian Singkat.</div>`; renderIsianSingkatKeyInput(); break;
+                    case 'essay': dynamicOptionsContainer.innerHTML = `<div class="p-6 bg-white/60 rounded-2xl text-center text-sky-700 font-bold border-2 border-dashed border-cyan-300 shadow-sm">Soal Essay.</div>`; renderEssayKeyInput(); break;
                 }
                 validateForm(); 
             }
@@ -834,15 +781,13 @@
                                         <button type="button" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-blue-600 input-toggle-btn" data-target="opt-${optLabel}-image" data-group="opt-${optLabel}">Gambar</button>
                                     </div>
                                 </div>
-                                <div id="opt-${optLabel}-text" class="input-group-opt-${optLabel}">
-                                    <textarea class="glass-input w-full p-4 rounded-xl text-sm font-medium" rows="1" placeholder="Teks opsi ${optLabel}..."></textarea>
-                                </div>
+                                <div id="opt-${optLabel}-text" class="input-group-opt-${optLabel}"><textarea class="glass-input w-full p-4 rounded-xl text-sm font-medium" rows="1" placeholder="Teks opsi ${optLabel}..."></textarea></div>
                                 <div id="opt-${optLabel}-image" class="input-group-opt-${optLabel} hidden">
                                     <div class="border-2 border-dashed border-cyan-300/60 bg-white/40 p-6 rounded-xl text-center hover:bg-white/60 transition cursor-pointer relative image-upload-container">
                                         <div class="upload-placeholder pointer-events-none text-sm text-cyan-700 font-bold">Klik upload gambar opsi ${optLabel}</div>
                                         <div class="preview-container hidden relative p-1">
                                             <img src="" class="max-h-32 mx-auto rounded-lg shadow-sm preview-image object-contain border border-cyan-200">
-                                            <button type="button" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-1.5 remove-image-btn hover:bg-red-600 shadow-md z-10"><svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                                            <button type="button" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-1.5 remove-image-btn"><svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
                                         </div>
                                         <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer file-input" accept="image/*">
                                     </div>
@@ -859,360 +804,335 @@
                 currentOptionsList.forEach(optLabel => {
                     const style = inputType === 'radio' ? 'form-radio rounded-full' : 'form-checkbox rounded-md';
                     const name = inputType === 'radio' ? 'name="pg_key"' : '';
-                    html += `
-                        <label class="inline-flex items-center p-4 border border-green-300/60 bg-white/80 rounded-xl cursor-pointer hover:bg-white hover:border-green-400 hover:shadow-md transition-all shadow-sm">
-                            <input type="${inputType}" ${name} value="${optLabel}" class="${style} h-6 w-6 text-green-500 border-green-300 focus:ring-green-400 key-input-element">
-                            <span class="ml-3 font-extrabold text-lg text-slate-700 select-none">Opsi ${optLabel}</span>
-                        </label>
-                    `;
+                    html += `<label class="inline-flex items-center p-4 border border-green-300/60 bg-white/80 rounded-xl cursor-pointer hover:bg-white hover:border-green-400 shadow-sm"><input type="${inputType}" ${name} value="${optLabel}" class="${style} h-6 w-6 text-green-500 border-green-300 focus:ring-green-400 key-input-element"><span class="ml-3 font-extrabold text-lg text-slate-700 select-none">Opsi ${optLabel}</span></label>`;
                 });
-                html += '</div>';
-                dynamicAnswerKeyContainer.innerHTML = html;
+                dynamicAnswerKeyContainer.innerHTML = html + '</div>';
             }
 
-            document.getElementById('btnAddOption').addEventListener('click', function() {
-                if(currentOptionsList.length < MAX_OPTIONS) {
-                    currentOptionsList.push(String.fromCharCode('A'.charCodeAt(0) + currentOptionsList.length));
-                    renderQuestionUI(questionTypeSelect.value);
-                }
-            });
-            document.getElementById('btnRemoveOption').addEventListener('click', function() {
-                if(currentOptionsList.length > MIN_OPTIONS) {
-                    currentOptionsList.pop();
-                    renderQuestionUI(questionTypeSelect.value);
-                }
-            });
+            document.getElementById('btnAddOption').addEventListener('click', function() { if(currentOptionsList.length < MAX_OPTIONS) { currentOptionsList.push(String.fromCharCode('A'.charCodeAt(0) + currentOptionsList.length)); renderQuestionUI(questionTypeSelect.value); } });
+            document.getElementById('btnRemoveOption').addEventListener('click', function() { if(currentOptionsList.length > MIN_OPTIONS) { currentOptionsList.pop(); renderQuestionUI(questionTypeSelect.value); } });
 
             function renderKategoriTableInput() {
-                const html = `
+                dynamicOptionsContainer.innerHTML = `
                     <div class="overflow-hidden rounded-2xl border border-cyan-200 shadow-sm">
-                        <table class="min-w-full border-collapse bg-white/60 backdrop-blur-sm" id="kategoriTableInput">
-                            <thead>
-                                <tr class="bg-cyan-100/50 text-slate-700 text-base border-b border-cyan-200">
-                                    <th class="p-4 text-left w-1/2 font-black">Pernyataan / Soal</th>
-                                    <th class="p-4 text-center border-l border-cyan-200"><input type="text" value="Benar" class="bg-transparent text-center font-black focus:outline-none focus:border-b-2 focus:border-cyan-500 w-24 kat-header-input"></th>
-                                    <th class="p-4 text-center border-l border-cyan-200"><input type="text" value="Salah" class="bg-transparent text-center font-black focus:outline-none focus:border-b-2 focus:border-cyan-500 w-24 kat-header-input"></th>
-                                    <th class="p-4 text-center border-l border-cyan-200 w-12"></th>
-                                </tr>
-                            </thead>
+                        <table class="min-w-full border-collapse bg-white/60" id="kategoriTableInput">
+                            <thead><tr class="bg-cyan-100/50 text-slate-700 text-base border-b border-cyan-200"><th class="p-4 text-left w-1/2 font-black">Pernyataan / Soal</th><th class="p-4 text-center border-l border-cyan-200"><input type="text" value="Benar" class="bg-transparent text-center font-black focus:outline-none w-24 kat-header-input"></th><th class="p-4 text-center border-l border-cyan-200"><input type="text" value="Salah" class="bg-transparent text-center font-black focus:outline-none w-24 kat-header-input"></th><th class="p-4 text-center border-l border-cyan-200 w-12"></th></tr></thead>
                             <tbody>${getKategoriRowHTML(1)}</tbody>
                         </table>
                     </div>
-                    <button type="button" id="btnAddTableRow" class="mt-4 text-sm flex items-center text-white bg-cyan-500 hover:bg-cyan-600 font-bold px-4 py-2 rounded-xl shadow-md transition-all">
-                        + Tambah Baris Pernyataan
-                    </button>
+                    <button type="button" id="btnAddTableRow" class="mt-4 text-sm flex items-center text-white bg-cyan-500 hover:bg-cyan-600 font-bold px-4 py-2 rounded-xl shadow-md">+ Tambah Baris</button>
                 `;
-                dynamicOptionsContainer.innerHTML = html;
-
-                document.getElementById('btnAddTableRow').addEventListener('click', () => {
-                    document.querySelector('#kategoriTableInput tbody').insertAdjacentHTML('beforeend', getKategoriRowHTML(Date.now()));
-                });
-                
-                document.querySelector('#kategoriTableInput').addEventListener('click', e => {
-                    if(e.target.closest('.delete-row-btn')) {
-                        if(document.querySelector('#kategoriTableInput tbody').rows.length > 1) {
-                            e.target.closest('tr').remove();
-                            renderKategoriAnswerKeyInput();
-                        }
-                    }
-                });
-                
-                document.querySelector('#kategoriTableInput').addEventListener('input', e => {
-                    if(e.target.classList.contains('kat-statement-input') || e.target.classList.contains('kat-header-input')) {
-                        renderKategoriAnswerKeyInput();
-                    }
-                });
+                document.getElementById('btnAddTableRow').addEventListener('click', () => { document.querySelector('#kategoriTableInput tbody').insertAdjacentHTML('beforeend', getKategoriRowHTML(Date.now())); });
+                document.querySelector('#kategoriTableInput').addEventListener('click', e => { if(e.target.closest('.delete-row-btn')) { if(document.querySelector('#kategoriTableInput tbody').rows.length > 1) { e.target.closest('tr').remove(); renderKategoriAnswerKeyInput(); } } });
+                document.querySelector('#kategoriTableInput').addEventListener('input', e => { if(e.target.classList.contains('kat-statement-input') || e.target.classList.contains('kat-header-input')) { renderKategoriAnswerKeyInput(); } });
             }
 
             function getKategoriRowHTML(id) {
-                return `
-                    <tr class="border-b border-cyan-100/50 last:border-0 hover:bg-white/80 transition-colors">
-                        <td class="p-3"><textarea class="glass-input w-full p-3 rounded-xl text-sm font-medium kat-statement-input" rows="1" placeholder="Tulis pernyataan..."></textarea></td>
-                        <td class="p-3 border-l border-cyan-100/50 bg-white/30"></td>
-                        <td class="p-3 border-l border-cyan-100/50 bg-white/30"></td>
-                        <td class="p-3 border-l border-cyan-100/50 text-center">
-                            <button type="button" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg delete-row-btn transition-colors"><svg class="w-6 h-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                        </td>
-                    </tr>
-                `;
+                return `<tr class="border-b border-cyan-100/50 hover:bg-white/80"><td class="p-3"><textarea class="glass-input w-full p-3 rounded-xl text-sm font-medium kat-statement-input" rows="1" placeholder="Tulis pernyataan..."></textarea></td><td class="p-3 border-l border-cyan-100/50"></td><td class="p-3 border-l border-cyan-100/50"></td><td class="p-3 border-l border-cyan-100/50 text-center"><button type="button" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg delete-row-btn"><svg class="w-6 h-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></td></tr>`;
             }
 
             function renderKategoriAnswerKeyInput() {
                 const headers = Array.from(document.querySelectorAll('.kat-header-input')).map(i => i.value || '-');
                 const stmts = Array.from(document.querySelectorAll('.kat-statement-input')).map(i => i.value || '...');
-                
-                let html = `
-                    <div class="overflow-hidden rounded-2xl border border-green-300 shadow-md bg-white/80 backdrop-blur-md">
-                        <table class="min-w-full">
-                            <thead><tr class="bg-green-100/80 text-xs text-green-700 uppercase tracking-widest font-black border-b border-green-200"><th class="p-4 text-left">Pernyataan</th><th class="p-4 text-center">${headers[0]}</th><th class="p-4 text-center">${headers[1]}</th></tr></thead>
-                            <tbody>
-                `;
-                stmts.forEach((stmt, idx) => {
-                    html += `
-                        <tr class="border-b border-green-50 hover:bg-green-50/80 transition-colors">
-                            <td class="p-4 text-sm font-bold text-slate-700">${stmt}</td>
-                            <td class="p-4 text-center"><input type="checkbox" name="kat_k_${idx}" value="${headers[0]}" class="form-checkbox h-6 w-6 text-green-500 focus:ring-green-400 key-input-element rounded-md cursor-pointer border-2 border-green-300"></td>
-                            <td class="p-4 text-center"><input type="checkbox" name="kat_k_${idx}" value="${headers[1]}" class="form-checkbox h-6 w-6 text-green-500 focus:ring-green-400 key-input-element rounded-md cursor-pointer border-2 border-green-300"></td>
-                        </tr>
-                    `;
-                });
-                html += `</tbody></table></div>`;
-                dynamicAnswerKeyContainer.innerHTML = html;
+                let html = `<div class="overflow-hidden rounded-2xl border border-green-300 shadow-md bg-white/80"><table class="min-w-full"><thead><tr class="bg-green-100/80 text-xs text-green-700 uppercase font-black border-b border-green-200"><th class="p-4 text-left">Pernyataan</th><th class="p-4 text-center">${headers[0]}</th><th class="p-4 text-center">${headers[1]}</th></tr></thead><tbody>`;
+                stmts.forEach((stmt, idx) => { html += `<tr class="border-b border-green-50"><td class="p-4 text-sm font-bold text-slate-700">${stmt}</td><td class="p-4 text-center"><input type="checkbox" name="kat_k_${idx}" value="${headers[0]}" class="form-checkbox h-6 w-6 text-green-500 focus:ring-green-400 key-input-element rounded-md"></td><td class="p-4 text-center"><input type="checkbox" name="kat_k_${idx}" value="${headers[1]}" class="form-checkbox h-6 w-6 text-green-500 focus:ring-green-400 key-input-element rounded-md"></td></tr>`; });
+                dynamicAnswerKeyContainer.innerHTML = html + `</tbody></table></div>`;
             }
 
-            function renderIsianSingkatKeyInput() {
-                dynamicAnswerKeyContainer.innerHTML = `<input type="text" class="w-full p-4 bg-white/90 border border-green-300 rounded-xl focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-400/20 transition-all key-input-element font-bold text-lg text-slate-800 shadow-inner" placeholder="Ketik kunci jawaban singkat di sini...">`;
-            }
-            function renderEssayKeyInput() {
-                dynamicAnswerKeyContainer.innerHTML = `<textarea class="w-full p-4 bg-white/90 border border-green-300 rounded-xl focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-400/20 transition-all key-input-element font-semibold text-slate-800 shadow-inner" rows="5" placeholder="Tuliskan rubrik / poin wajib jawaban di sini..."></textarea>`;
-            }
+            function renderIsianSingkatKeyInput() { dynamicAnswerKeyContainer.innerHTML = `<input type="text" class="w-full p-4 bg-white/90 border border-green-300 rounded-xl key-input-element font-bold text-lg text-slate-800" placeholder="Ketik kunci jawaban singkat di sini...">`; }
+            function renderEssayKeyInput() { dynamicAnswerKeyContainer.innerHTML = `<textarea class="w-full p-4 bg-white/90 border border-green-300 rounded-xl key-input-element font-semibold text-slate-800" rows="5" placeholder="Tuliskan rubrik jawaban di sini..."></textarea>`; }
 
-            // --- 5. REAL-TIME VALIDATION & DYNAMIC BUTTON ---
+            // --- VALIDATION & SUBMIT SOAL ---
             const btnSubmitFinal = document.getElementById('btnSubmitFinalQuestion');
             const editorArea = document.getElementById('questionEditorArea');
 
             function validateForm() {
                 let isValid = false;
                 const topic = document.getElementById('topicInput').value.trim();
-                
-                // Pengecekan Pertanyaan (Teks atau Gambar)
-                const isQTextActive = document.querySelector('[data-target="question-text-input"]').classList.contains('active');
-                const qContent = isQTextActive 
-                    ? document.getElementById('questionTextArea').value.trim() 
-                    : document.getElementById('questionImageInputFile').value;
-
-                // Cek Kunci Jawaban
+                const qContent = document.querySelector('[data-target="question-text-input"]').classList.contains('active') ? document.getElementById('questionTextArea').value.trim() : document.getElementById('questionImageInputFile').value;
                 const keys = document.querySelectorAll('.key-input-element');
                 let keyFilled = false;
-                if(keys.length > 0) { 
-                    keys.forEach(k => { 
-                        if((k.type === 'radio' || k.type === 'checkbox') && k.checked) keyFilled = true; 
-                        if((k.type === 'text' || k.tagName === 'TEXTAREA') && k.value.trim() !== '') keyFilled = true; 
-                    });
-                } else { 
-                    keyFilled = true; 
-                }
+                if(keys.length > 0) { keys.forEach(k => { if((k.type === 'radio' || k.type === 'checkbox') && k.checked) keyFilled = true; if((k.type === 'text' || k.tagName === 'TEXTAREA') && k.value.trim() !== '') keyFilled = true; }); } else { keyFilled = true; }
 
-                if(topic !== '' && qContent !== '' && keyFilled) {
-                    isValid = true;
-                }
+                if(topic !== '' && qContent !== '' && keyFilled) isValid = true;
 
-                // Ganti teks tombol jika ini adalah soal terakhir!
-                if (savedQuestionsCount + 1 >= globalTargetSoal && globalTargetSoal > 0) {
-                    btnSubmitFinal.querySelector('span').innerText = 'Simpan & Proses Finalisasi';
-                } else {
-                    btnSubmitFinal.querySelector('span').innerText = 'Simpan & Lanjut Soal Berikutnya';
-                }
+                if (savedQuestionsCount + 1 >= globalTargetSoal && globalTargetSoal > 0) btnSubmitFinal.querySelector('span').innerText = 'Simpan & Proses Finalisasi';
+                else btnSubmitFinal.querySelector('span').innerText = 'Simpan & Lanjut Soal Berikutnya';
 
-                if(isValid) {
-                    btnSubmitFinal.disabled = false;
-                    btnSubmitFinal.classList.remove('btn-cyber-disabled');
-                    btnSubmitFinal.classList.add('btn-cyber');
-                } else {
-                    btnSubmitFinal.disabled = true;
-                    btnSubmitFinal.classList.add('btn-cyber-disabled');
-                    btnSubmitFinal.classList.remove('btn-cyber');
-                }
+                if(isValid) { btnSubmitFinal.disabled = false; btnSubmitFinal.classList.remove('btn-cyber-disabled'); btnSubmitFinal.classList.add('btn-cyber'); } 
+                else { btnSubmitFinal.disabled = true; btnSubmitFinal.classList.add('btn-cyber-disabled'); btnSubmitFinal.classList.remove('btn-cyber'); }
             }
 
-            editorArea.addEventListener('input', validateForm);
-            editorArea.addEventListener('change', validateForm);
+            editorArea.addEventListener('input', validateForm); editorArea.addEventListener('change', validateForm);
 
-            // --- 6. GATHER DATA & KIRIM KE BACKEND (SIMPAN SOAL) ---
             async function getQuestionData() {
                 const type = document.getElementById('questionTypeSelect').value;
-                let dataOpsi = {};
-                let kunciJawaban = [];
-
-                // 1. Kumpulkan & Kompres Stimulus (Bila ada gambar)
-                const isStimulusText = document.querySelector('[data-target="stimulus-text-input"]').classList.contains('active');
+                let dataOpsi = {}; let kunciJawaban = [];
                 let stimulusVal = '';
-                if (isStimulusText) {
-                    stimulusVal = document.querySelector('#stimulus-text-input textarea').value;
-                } else {
-                    const stimFile = document.querySelector('#stimulus-image-input .file-input').files[0];
-                    const base64 = await compressImageToBase64(stimFile, 500, 0.5); // Lebar 500px, Kualitas 50%
-                    if(base64) stimulusVal = `<img src="${base64}" alt="Stimulus" class="max-w-full h-auto rounded-lg shadow-sm">`;
-                }
+                if (document.querySelector('[data-target="stimulus-text-input"]').classList.contains('active')) stimulusVal = document.querySelector('#stimulus-text-input textarea').value;
+                else { const base64 = await compressImageToBase64(document.querySelector('#stimulus-image-input .file-input').files[0], 500, 0.5); if(base64) stimulusVal = `<img src="${base64}" alt="Stimulus" class="max-w-full h-auto rounded-lg mt-2 mb-2">`; }
 
-                // 2. Kumpulkan & Kompres Soal Utama
-                const isQuestionText = document.querySelector('[data-target="question-text-input"]').classList.contains('active');
                 let soalUtamaVal = '';
-                if (isQuestionText) {
-                    soalUtamaVal = document.getElementById('questionTextArea').value;
-                } else {
-                    const qFile = document.getElementById('questionImageInputFile').files[0];
-                    const base64 = await compressImageToBase64(qFile, 500, 0.5); // Lebar 500px, Kualitas 50%
-                    if(base64) soalUtamaVal = `<img src="${base64}" alt="Soal" class="max-w-full h-auto rounded-lg shadow-sm">`;
-                }
+                if (document.querySelector('[data-target="question-text-input"]').classList.contains('active')) soalUtamaVal = document.getElementById('questionTextArea').value;
+                else { const base64 = await compressImageToBase64(document.getElementById('questionImageInputFile').files[0], 500, 0.5); if(base64) soalUtamaVal = `<img src="${base64}" alt="Soal" class="max-w-full h-auto rounded-lg mt-2 mb-2">`; }
 
-                // 3. Kumpulkan & Kompres Gambar Pendukung
-                const suppFile = document.getElementById('supportingImageInputFile').files[0];
-                const urlGambarVal = await compressImageToBase64(suppFile, 500, 0.5);
+                const urlGambarVal = await compressImageToBase64(document.getElementById('supportingImageInputFile').files[0], 500, 0.5);
 
-                // 4. Kumpulkan & Kompres Opsi Jawaban
                 if (type === 'pg_tunggal' || type === 'pg_majemuk') {
                     for (const opt of currentOptionsList) {
-                        const isText = document.querySelector(`[data-target="opt-${opt}-text"]`).classList.contains('active');
-                        if (isText) {
-                            dataOpsi[opt] = document.querySelector(`#opt-${opt}-text textarea`).value;
-                        } else {
-                            const optFile = document.querySelector(`#opt-${opt}-image .file-input`).files[0];
-                            // KOMPRESI EKSTREM: Opsi max 300px, 40% Kualitas (Biar total 5 opsi tetap aman di bawah 50K karakter Sheet)
-                            const base64 = await compressImageToBase64(optFile, 300, 0.4);
-                            dataOpsi[opt] = base64 ? `<img src="${base64}" alt="Opsi ${opt}" class="max-w-xs h-auto rounded-lg shadow-sm">` : '';
-                        }
+                        if (document.querySelector(`[data-target="opt-${opt}-text"]`).classList.contains('active')) dataOpsi[opt] = document.querySelector(`#opt-${opt}-text textarea`).value;
+                        else { const base64 = await compressImageToBase64(document.querySelector(`#opt-${opt}-image .file-input`).files[0], 300, 0.4); dataOpsi[opt] = base64 ? `<img src="${base64}" alt="Opsi" class="max-h-24 h-auto rounded-md">` : ''; }
                     }
                     document.querySelectorAll('.key-input-element:checked').forEach(k => kunciJawaban.push(k.value));
                 } else if (type === 'kategori') {
                     const headers = Array.from(document.querySelectorAll('.kat-header-input')).map(i => i.value);
                     const stmts = Array.from(document.querySelectorAll('.kat-statement-input')).map(i => i.value);
                     dataOpsi = { headers, statements: stmts };
-                    
-                    stmts.forEach((stmt, idx) => {
-                        let rowAns = [];
-                        document.querySelectorAll(`input[name="kat_k_${idx}"]:checked`).forEach(k => rowAns.push(k.value));
-                        kunciJawaban.push({ pernyataan: stmt, jawaban: rowAns });
-                    });
-                } else {
-                    kunciJawaban = document.querySelector('.key-input-element').value;
-                }
+                    stmts.forEach((stmt, idx) => { let rowAns = []; document.querySelectorAll(`input[name="kat_k_${idx}"]:checked`).forEach(k => rowAns.push(k.value)); kunciJawaban.push({ pernyataan: stmt, jawaban: rowAns }); });
+                } else { kunciJawaban = document.querySelector('.key-input-element').value; }
 
-                return {
-                    action: 'save_question',
-                    idUjian: globalIdUjian,
-                    nomorSoal: savedQuestionsCount + 1,
-                    tipeSoal: type,
-                    topik: document.getElementById('topicInput').value,
-                    subTopik: document.getElementById('subTopicInput').value,
-                    stimulus: stimulusVal,
-                    soalUtama: soalUtamaVal,
-                    dataOpsi: JSON.stringify(dataOpsi),
-                    kunciJawaban: typeof kunciJawaban === 'string' ? kunciJawaban : JSON.stringify(kunciJawaban),
-                    urlGambar: urlGambarVal 
-                };
+                return { action: 'save_question', idUjian: globalIdUjian, nomorSoal: savedQuestionsCount + 1, tipeSoal: type, topik: document.getElementById('topicInput').value, subTopik: document.getElementById('subTopicInput').value, stimulus: stimulusVal, soalUtama: soalUtamaVal, dataOpsi: JSON.stringify(dataOpsi), kunciJawaban: typeof kunciJawaban === 'string' ? kunciJawaban : JSON.stringify(kunciJawaban), urlGambar: urlGambarVal };
             }
 
             btnSubmitFinal.addEventListener('click', async function() {
                 const originalText = this.querySelector('span').innerText;
-                this.querySelector('span').innerText = 'Memproses Gambar & Mengirim...';
-                this.disabled = true;
+                this.querySelector('span').innerText = 'Mengirim...'; this.disabled = true;
 
                 try {
-                    // Dapatkan payload beserta semua gambar yang telah di-kompres (Proses ini butuh waktu beberapa ms/detik)
                     const payload = await getQuestionData();
-                    
-                    const response = await fetchWithRetry(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(payload)
-                    });
-                    
+                    const response = await fetchWithRetry(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                     const result = await response.json();
 
                     if(result.status === 'success') {
                         savedQuestionsCount++;
                         
-                        // Bersihkan Gambar & Input Teks
-                        document.getElementById('topicInput').value = '';
-                        document.getElementById('subTopicInput').value = '';
-                        document.getElementById('questionTextArea').value = '';
-                        const stimulusTextArea = document.querySelector('#stimulus-text-input textarea');
-                        if(stimulusTextArea) stimulusTextArea.value = '';
-                        
+                        document.getElementById('topicInput').value = ''; document.getElementById('subTopicInput').value = ''; document.getElementById('questionTextArea').value = '';
+                        const stimulusTextArea = document.querySelector('#stimulus-text-input textarea'); if(stimulusTextArea) stimulusTextArea.value = '';
                         document.querySelectorAll('.remove-image-btn').forEach(btn => btn.click());
-                        
-                        // Reset Dropdown & Opsi ke default
-                        document.getElementById('questionTypeSelect').value = 'pg_tunggal';
-                        currentOptionsList = ['A', 'B', 'C', 'D', 'E'];
-                        renderQuestionUI('pg_tunggal');
+                        document.getElementById('questionTypeSelect').value = 'pg_tunggal'; currentOptionsList = ['A', 'B', 'C', 'D', 'E']; renderQuestionUI('pg_tunggal');
                         
                         if (savedQuestionsCount >= totalExamQuestions) {
-                            // LOGIKA FINALISASI (Target Soal Terpenuhi)
                             document.getElementById('questionEditorArea').classList.add('hidden', 'opacity-0');
-                            
-                            tabBtnPreviewer.click();
+                            tabBtnPreviewer.click(); // Langsung pindah ke histori
+                            showToast("Input Selesai! Me-reset form...", true);
 
-                            const previewContainer = document.querySelector('#tabPreviewer div');
-                            previewContainer.innerHTML = `
-                                <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-green-500/30">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
-                                </div>
-                                <p class="font-black text-3xl text-slate-800">Mantap! Semua ${savedQuestionsCount} Soal <span class="text-green-600">Telah Selesai</span></p>
-                                <p class="text-base mt-3 font-semibold text-slate-500">Proses input ujian selesai. Data tersimpan aman di Database.</p>
-                                <p class="text-sm mt-8 font-bold text-sky-600 animate-pulse">Sistem akan me-reset form dalam 4 detik...</p>
-                            `;
-                            previewContainer.classList.remove('py-20', 'border-dashed', 'text-slate-500', 'bg-white/40');
-                            previewContainer.classList.add('py-16', 'bg-white/80', 'shadow-xl', 'border-solid', 'border-green-300/50');
-
-                            // --- AUTO RESET SYSTEM ---
                             setTimeout(() => {
-                                tabBtnInputer.click();
-
-                                identityInputs.forEach(input => { 
-                                     input.value = '';
-                                    input.disabled = false; 
-                                     input.classList.remove('opacity-70', 'cursor-not-allowed'); 
-                                 });
-
-                                btnSubmitIdentity.style.display = 'block';
-                                btnSubmitIdentity.innerText = 'Submit Identitas';
-                                btnSubmitIdentity.disabled = false;
-
-                                btnCreateQuestions.style.display = 'flex';
-                                btnCreateQuestions.disabled = true;
-                                btnCreateQuestions.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg> Mulai Buat Soal';
-                                btnCreateQuestions.classList.remove('btn-cyber');
-                                btnCreateQuestions.classList.add('btn-cyber-disabled');
+                                identityInputs.forEach(input => { input.value = ''; input.disabled = false; input.classList.remove('opacity-70', 'cursor-not-allowed'); });
+                                btnSubmitIdentity.style.display = 'block'; btnSubmitIdentity.innerText = 'Submit Identitas'; btnSubmitIdentity.disabled = false;
+                                btnCreateQuestions.style.display = 'flex'; btnCreateQuestions.disabled = true; btnCreateQuestions.classList.remove('btn-cyber'); btnCreateQuestions.classList.add('btn-cyber-disabled');
                                 identityStatusMsg.classList.add('hidden');
-
-                                globalIdUjian = '';
-                                globalTargetSoal = 0;
-                                savedQuestionsCount = 0;
-                                totalExamQuestions = 0;
-
-                                previewContainer.innerHTML = `
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto text-cyan-300 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                    <p class="font-bold text-xl text-slate-600">Belum ada soal yang tersimpan.</p>
-                                    <p class="text-base mt-2 text-sky-600/80">Selesaikan input soal dan klik Simpan.</p>
-                                `;
-                                previewContainer.classList.add('py-20', 'border-dashed', 'text-slate-500', 'bg-white/40');
-                                previewContainer.classList.remove('py-16', 'bg-white/80', 'shadow-xl', 'border-solid', 'border-green-300/50');
-                                
+                                globalIdUjian = ''; globalTargetSoal = 0; savedQuestionsCount = 0; totalExamQuestions = 0;
                             }, 4000);
-
                         } else {
-                            document.getElementById('questionNumberLabel').innerText = savedQuestionsCount + 1;
-                            validateForm(); 
-                            
-                            const previewContainer = document.querySelector('#tabPreviewer div');
-                            previewContainer.innerHTML = `
-                                <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-green-500/30">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
-                                </div>
-                                <p class="font-black text-3xl text-slate-800">${savedQuestionsCount} Soal <span class="text-green-600">Tersimpan</span></p>
-                                <p class="text-base mt-3 font-semibold text-slate-500">Sedang mengerjakan soal No. ${savedQuestionsCount + 1} dari total ${totalExamQuestions} soal.</p>
-                            `;
-                            previewContainer.classList.remove('py-20', 'border-dashed', 'text-slate-500', 'bg-white/40');
-                            previewContainer.classList.add('py-16', 'bg-white/80', 'shadow-xl', 'border-solid', 'border-green-300/50');
-
+                            document.getElementById('questionNumberLabel').innerText = savedQuestionsCount + 1; validateForm(); 
+                            showToast(`Soal ${savedQuestionsCount} berhasil disimpan!`, true);
                             document.getElementById('questionEditorArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
-                    } else {
-                        showToast('Gagal nyimpan soal: ' + result.message);
-                        this.querySelector('span').innerText = originalText;
-                        this.disabled = false;
-                    }
-                } catch (err) {
-                    let errMsg = err.message;
-                    if (errMsg.includes('Unexpected token') || errMsg.includes('JSON')) {
-                        showToast('KONEKSI DITOLAK GOOGLE!\n\nPastikan URL dan Hak Akses Apps Script sudah "Anyone".');
-                    } else {
-                        showToast('Terjadi kesalahan jaringan/server setelah beberapa kali percobaan.\nDetail: ' + errMsg);
-                    }
-                    this.querySelector('span').innerText = originalText;
-                    this.disabled = false;
-                }
+                    } else { showToast('Gagal: ' + result.message); this.querySelector('span').innerText = originalText; this.disabled = false; }
+                } catch (err) { showToast('Error Jaringan: ' + err.message); this.querySelector('span').innerText = originalText; this.disabled = false; }
             });
+
+            // =========================================================================
+            //  FITUR BARU: LOAD HISTORY & GENERATE PDF
+            // =========================================================================
+
+            async function loadExamHistory() {
+                const container = document.getElementById('previewStatusContainer');
+                
+                // Animasi Loading
+                container.innerHTML = `
+                    <div class="text-center text-slate-500 py-20 bg-white/40 rounded-2xl border-2 border-dashed border-cyan-300 backdrop-blur-sm">
+                        <svg class="animate-spin h-12 w-12 mx-auto text-cyan-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <p class="font-bold text-xl text-slate-600">Menarik Histori Ujian Anda...</p>
+                    </div>`;
+
+                try {
+                    const response = await fetchWithRetry(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'get_history', namaGuru: globalNamaGuru })
+                    });
+                    const result = await response.json();
+
+                    if(result.status === 'success') {
+                        const history = result.data;
+                        if(history.length === 0) {
+                            container.innerHTML = `
+                                <div class="text-center text-slate-500 py-20 bg-white/40 rounded-2xl border-2 border-dashed border-cyan-300 backdrop-blur-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto text-slate-300 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    <p class="font-bold text-xl text-slate-600">Belum ada riwayat ujian.</p>
+                                    <p class="text-base mt-2 text-sky-600/80">Silakan buat ujian baru di tab Exam Inputer.</p>
+                                </div>`;
+                        } else {
+                            // Render Daftar Kartu Histori
+                            let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-6">';
+                            history.forEach(item => {
+                                html += `
+                                    <div class="inner-panel rounded-2xl p-6 shadow-md hover:shadow-lg transition-all border-l-4 border-l-cyan-500 flex flex-col justify-between bg-white/70">
+                                        <div>
+                                            <div class="flex justify-between items-start mb-2">
+                                                <span class="bg-cyan-100 text-cyan-800 text-xs font-black px-3 py-1 rounded-full border border-cyan-200">${item.jenisUjian || 'UJIAN'}</span>
+                                                <span class="text-xs font-bold text-slate-400">${item.waktuDibuat}</span>
+                                            </div>
+                                            <h3 class="text-xl font-extrabold text-slate-800 mb-1 leading-tight">${item.judulUjian}</h3>
+                                            <p class="text-sm font-bold text-blue-600 mb-4">${item.mataPelajaran}</p>
+                                            
+                                            <div class="flex space-x-4 mb-6 text-sm font-semibold text-slate-600 bg-white/50 p-3 rounded-xl border border-slate-100">
+                                                <div class="flex items-center"><svg class="w-4 h-4 mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ${item.durasi} mnt</div>
+                                                <div class="flex items-center"><svg class="w-4 h-4 mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg> ${item.totalSoal} Soal</div>
+                                            </div>
+                                        </div>
+                                        <button onclick="generatePDF('${item.idUjian}')" class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all flex justify-center items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                            Buat PDF Soal
+                                        </button>
+                                    </div>
+                                `;
+                            });
+                            html += '</div>';
+                            container.innerHTML = html;
+                        }
+                    } else {
+                        showToast("Gagal memuat histori: " + result.message);
+                    }
+                } catch (error) {
+                    showToast("Error Jaringan saat memuat histori.");
+                }
+            }
+
+            // MENGHUBUNGKAN FUNGSI KE WINDOW AGAR BISA DIPANGGIL DARI ONCLICK BUTTON
+            window.generatePDF = async function(idUjian) {
+                showToast("Membuat PDF... Menarik data soal, harap tunggu.", false);
+                
+                try {
+                    const response = await fetchWithRetry(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'get_exam_data', idUjian: idUjian })
+                    });
+                    const result = await response.json();
+
+                    if(result.status === 'success') {
+                        const identitas = result.identitas;
+                        const soalList = result.soal;
+                        
+                        // Siapkan jendela baru
+                        const printWindow = window.open('', '_blank');
+                        
+                        // Bangun struktur HTML khusus untuk Print (Kertas A4 Putih Bersih)
+                        let html = `
+                        <!DOCTYPE html>
+                        <html lang="id">
+                        <head>
+                            <meta charset="UTF-8">
+                            <title>${identitas.judulUjian} - PDF</title>
+                            <style>
+                                @page { size: A4; margin: 20mm; }
+                                body { font-family: 'Times New Roman', Times, serif; color: #000; line-height: 1.5; font-size: 11pt; }
+                                * { box-sizing: border-box; }
+                                .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+                                .header h1 { margin: 0; font-size: 16pt; text-transform: uppercase; }
+                                .header h2 { margin: 5px 0; font-size: 14pt; }
+                                .info-table { width: 100%; margin-bottom: 20px; font-weight: bold; }
+                                .info-table td { padding: 3px; }
+                                .question-block { margin-bottom: 25px; page-break-inside: avoid; }
+                                .q-number { float: left; width: 30px; font-weight: bold; }
+                                .q-content { margin-left: 30px; }
+                                .q-image { max-width: 400px; max-height: 300px; display: block; margin: 10px 0; }
+                                .options-list { list-style-type: none; padding: 0; margin: 10px 0 0 0; }
+                                .options-list li { margin-bottom: 5px; display: flex; align-items: flex-start; }
+                                .opt-label { width: 25px; font-weight: bold; }
+                                .opt-img { max-height: 100px; display: block; margin-top: 5px; }
+                                .kat-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                                .kat-table th, .kat-table td { border: 1px solid #000; padding: 8px; text-align: left; }
+                                .kat-table th.center, .kat-table td.center { text-align: center; width: 60px; }
+                                .essay-space { border: 1px dashed #999; height: 100px; margin-top: 10px; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="header">
+                                <h1>${identitas.jenisUjian || 'UJIAN SEKOLAH'}</h1>
+                                <h2>${identitas.judulUjian}</h2>
+                            </div>
+                            <table class="info-table">
+                                <tr>
+                                    <td width="15%">Mata Pelajaran</td><td width="2%">:</td><td width="40%">${identitas.mataPelajaran}</td>
+                                    <td width="15%">Nama Peserta</td><td width="2%">:</td><td width="26%" style="border-bottom: 1px dotted #000;"></td>
+                                </tr>
+                                <tr>
+                                    <td>Durasi Waktu</td><td>:</td><td>${identitas.durasi} Menit</td>
+                                    <td>Kelas / No</td><td>:</td><td style="border-bottom: 1px dotted #000;"></td>
+                                </tr>
+                                <tr>
+                                    <td>Guru Pengampu</td><td>:</td><td colspan="4">${identitas.namaGuru}</td>
+                                </tr>
+                            </table>
+                            <hr style="margin-bottom: 20px;">
+                        `;
+
+                        // Looping Soal
+                        soalList.forEach((q, index) => {
+                            html += `<div class="question-block">
+                                        <div class="q-number">${q.nomorSoal}.</div>
+                                        <div class="q-content">`;
+                            
+                            // Stimulus
+                            if(q.stimulus) { html += `<div style="margin-bottom:10px; font-style: italic;">${q.stimulus.replace(/<img[^>]+src="([^">]+)"/g, '<img src="$1" class="q-image"')}</div>`; }
+                            // Supporting Image (Kolom K di Sheet, kalau ada logicnya)
+                            if(q.urlGambar && q.urlGambar !== "undefined") { html += `<img src="${q.urlGambar}" class="q-image">`; }
+                            // Soal Utama
+                            html += `<div>${q.soalUtama.replace(/<img[^>]+src="([^">]+)"/g, '<img src="$1" class="q-image"')}</div>`;
+
+                            // Render Berdasarkan Tipe
+                            if(q.tipeSoal === 'pg_tunggal' || q.tipeSoal === 'pg_majemuk') {
+                                try {
+                                    const opsi = JSON.parse(q.dataOpsi);
+                                    html += `<ul class="options-list">`;
+                                    for(const key in opsi) {
+                                        let val = opsi[key];
+                                        // Cek apakah val adalah image tag string dari base64
+                                        val = val.replace(/<img[^>]+src="([^">]+)"/g, '<img src="$1" class="opt-img"');
+                                        html += `<li><span class="opt-label">${key}.</span> <div>${val}</div></li>`;
+                                    }
+                                    html += `</ul>`;
+                                } catch(e){}
+                            } 
+                            else if (q.tipeSoal === 'kategori') {
+                                try {
+                                    const dataKat = JSON.parse(q.dataOpsi);
+                                    html += `<table class="kat-table">
+                                                <thead><tr><th>Pernyataan</th><th class="center">${dataKat.headers[0]}</th><th class="center">${dataKat.headers[1]}</th></tr></thead>
+                                                <tbody>`;
+                                    dataKat.statements.forEach(stmt => {
+                                        html += `<tr><td>${stmt}</td><td class="center"></td><td class="center"></td></tr>`;
+                                    });
+                                    html += `</tbody></table>`;
+                                } catch(e){}
+                            }
+                            else if (q.tipeSoal === 'isian' || q.tipeSoal === 'essay') {
+                                html += `<div class="essay-space"></div>`;
+                            }
+
+                            html += `</div></div>`; // End q-content & question-block
+                        });
+
+                        html += `</body></html>`;
+                        
+                        // Masukkan HTML ke window baru
+                        printWindow.document.write(html);
+                        printWindow.document.close();
+                        
+                        // Tunggu sebentar sampai gambar selesai di render, baru panggil Print
+                        setTimeout(() => {
+                            printWindow.print();
+                            showToast("PDF siap dicetak!", true);
+                        }, 1000);
+
+                    } else {
+                        showToast("Gagal mengambil data soal: " + result.message);
+                    }
+                } catch (error) {
+                    showToast("Error Jaringan saat mengambil data PDF.");
+                }
+            }
 
         }); 
     </script>
